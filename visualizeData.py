@@ -1,25 +1,7 @@
-
-
-import matplotlib
 import matplotlib.pyplot as plt
+from data import *
 
-
-import sklearn.datasets
-
-
-def load_data():
-    N = 500
-    gq = sklearn.datasets.make_gaussian_quantiles(
-        mean=None ,
-        cov =0.7 ,
-        n_samples =N,
-        n_features =2,
-        n_classes =2,
-        shuffle=True ,
-        random_state =None)
-    return gq
-
-data  = load_data()
+data  = create_data()
 
 print(data[0][0])
 print(len(data[0]))
@@ -32,5 +14,4 @@ plt.scatter([x[0] for x in class1Data],[x[1] for x in class1Data], label = "clas
 plt.scatter([x[0] for x in class2Data],[x[1] for x in class2Data], label = "class2")
 plt.legend()
 plt.show()
-
 
