@@ -15,18 +15,20 @@ class ANN:
 
     def predict(self, x):
         for b, W in zip(self.B, self.W):
-            x = sigmoid(W.T @ x + b)
-            print("Act")
-            print(x)
+            x = sigmoid(np.dot(W.T, x) + b.T[0])
+            
         return np.argmax(x)
 
     # Computes a forward pass and returns activations and pre-activations
     def forward(self, x):
         A = []
-        Z = []
+        Z = [] 
 
         for b, W in zip(self.B, self.W):
-            z = W.T @ x + b
+            z = np.dot(W.T, x)
+            print("Z")
+            print(z)
+            z += b.T[0]
             x = sigmoid(z)
             Z.append(z)
             A.append(x)
@@ -36,7 +38,7 @@ class ANN:
     # Calulates backward pass and returns the errors w.r.t. weights and biases for each layer
     def backward(self, x, y):
         # Performs forward pass
-        A, Z = forward(x)
+        A, Z = self.forward(x)
 
         # Index of last hidden layer
         i = self.n_layers - 2
@@ -65,7 +67,7 @@ class ANN:
 
     # Performs Batch Gradient Descent on given batch
     def BGD(self, batch):
-        # Errors w.r.t. each layer
+        # Errors w.r.t. each layer#ag
         dE_dB_total = [np.zeros(b.shape) for b in self.B]
         dE_dW_total = [np.zeros(w.shape) for w in self.W]
 
@@ -73,7 +75,7 @@ class ANN:
         P = len(batch)
 
         for x, y in batch:
-            dE_dB, dE_dW = backward(x, y)
+            dE_dB, dE_dW = self.backward(x, y)
 
             # Sums to the total amount to update weights and biases with
             dE_dB_total = [dE_dB_old + dE_dB_new for dE_dB_old, dE_dB_new in zip(dE_dB_total, dE_dB)]
