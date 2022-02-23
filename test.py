@@ -1,11 +1,10 @@
 from data import *
-from ann import *
+#from ann import *
+from ffnn import *
 
 data = create_data()
-model = ANN()
+model = ANN((2, 3, 2))
 
-model.add_hidden(10)
-model.add_hidden(2)
 
 output = model.predict(data[0][0])
 
