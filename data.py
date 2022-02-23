@@ -14,7 +14,7 @@ def create_data(N=500, n_f=2, n_c=2):
         shuffle=True,
         random_state=None)
 
-    for i in range(len(gq)):
+    for i in range(N):
         data.append((gq[0][i], gq[1][i]))
 
     return data
