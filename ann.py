@@ -1,7 +1,8 @@
+from typing import List
 from scipy.special import expit
 import numpy as np
 import sys
-from math import exp
+import math
 import warnings
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning) 
 
@@ -24,8 +25,7 @@ class ANN:
     def forward_pass(self, x):
         for w_matrix, b_matrix in zip(self.weights, self.biases):
             x = np.dot(x, np.transpose(w_matrix)) + b_matrix
-            if self.act == 'sigmoid':
-                x = expit(x)
+            x = self.activationFunction(x)
         return x
 
     def predict(self, x):
@@ -38,10 +38,10 @@ class ANN:
         for w_matrix, b_matrix in zip(self.weights, self.biases):
             x = np.dot(x, np.transpose(w_matrix)) + b_matrix
             Z.append(x)
-            if self.act == 'sigmoid':
-                x = expit(x)
+            x = self.activationFunction(x)
             A.append(x)
         return A,Z
+    
 
     def backprop(self,A,Z,L,bias_changes,weight_changes,error):
         if L == -1:
@@ -71,10 +71,24 @@ class ANN:
 
     def d_activation_function(self, x):
         if (self.act== 'sigmoid'):
-            y = 1 / (1+exp(-x))
+            y = 1 / (1+ np.exp(-x))
             return y * (1-y) 
+        elif self.act == 'tanh':
+            return 1 - math.tanh(x) * math.tanh(x)
         else:
-            print("delta activation function not implemented")
+            print("derivative of activation function not implemented")
+            sys.exit(0)
+    
+    def activationFunction(self,x):
+        if self.act == 'sigmoid':
+            return  expit(x)
+        elif self.act == 'tanh':
+            try:
+                return math.tanh(x)
+            except TypeError:
+                return [math.tanh(x_i) for x_i in x]
+        else:
+            print("activation function '{0}' is not implemented".format(self.act))
             sys.exit(0)
 
     def backpropagation_batch(self,X,Y_class, learningRate):
@@ -99,6 +113,8 @@ class ANN:
 
             total_bias_changes = np.add(bias_changes, total_bias_changes)
             total_weight_changes = np.add(weight_changes, total_weight_changes)
-        
+
+
         self.biases =  np.add(self.biases,  (total_bias_changes / len(X)) * learningRate)
         self.weights = np.add(self.weights,  (total_weight_changes / len(X)) * learningRate)
+        

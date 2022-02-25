@@ -18,7 +18,7 @@ def print_accuracy(X,Y,epoch):
     print("Epoch {0}: Accuracy {1}, predictingclass 1 = {2}, predicting class 2 = {3}".format(epoch,accuracy/ len(X), class1predictions, len(X) - class1predictions))
 
 data = create_data(N = 500)
-model = ANN(n_features=2)
+model = ANN(act = 'tanh',n_features=2)
 model.add_hidden(10)
 model.add_hidden(2)
 
@@ -26,11 +26,11 @@ model.add_hidden(2)
 #X = [[1,1],[0,1],[1,0],[0,0]]
 #Y = [[1],[0],[0],[1]]
 
-for i in range(200):
+for i in range(100):
     shuffle(data)
     X = [pair[0] for pair in data]
     Y = [pair[1] for pair in data]
-    model.backpropagation_batch(X,Y, 10)
+    model.backpropagation_batch(X,Y, 0.1)
     print_accuracy(X,Y,i)
 
 
