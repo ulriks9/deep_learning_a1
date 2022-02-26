@@ -1,11 +1,13 @@
 from re import X
 
 from sklearn.utils import shuffle
+from torch import le
 from data import *
 from ann import *
 from random import shuffle
+from visualizeData import *
 
-def print_accuracy(X,Y,epoch):
+def print_accuracy(X,Y):
     accuracy = 0
     class1predictions = 0
 
@@ -15,23 +17,24 @@ def print_accuracy(X,Y,epoch):
             accuracy +=1
         if pred == 0:
             class1predictions +=1
-    print("Epoch {0}: Accuracy {1}, predictingclass 1 = {2}, predicting class 2 = {3}".format(epoch,accuracy/ len(X), class1predictions, len(X) - class1predictions))
+    print("Accuracy {0}, predictingclass 1 = {1}, predicting class 2 = {2}".format(accuracy/ len(X), class1predictions, len(X) - class1predictions))
 
-data = create_data(N = 500)
-model = ANN(act = 'tanh',n_features=2)
-model.add_hidden(10)
+data = create_data(N = 1000)
+model = ANN(act = 'sigmoid',n_features=2)
+model.add_hidden(12)
 model.add_hidden(2)
 
 
-#X = [[1,1],[0,1],[1,0],[0,0]]
-#Y = [[1],[0],[0],[1]]
+lr = [3,0.7,0.2,0.03,0.01,0.002,0.0005]
+for rate in lr:
+    model.train(data,n_epochs=100,batch_size=500,momentum=0.7,learing_rate=rate,verbose=True)
 
-for i in range(100):
-    shuffle(data)
-    X = [pair[0] for pair in data]
-    Y = [pair[1] for pair in data]
-    model.backpropagation_batch(X,Y, 0.1)
-    print_accuracy(X,Y,i)
+new_data = create_data(N = 1000)
+X = [pair[0] for pair in new_data]
+Y = [pair[1] for pair in new_data]
+print_accuracy(X,Y)
+
+visualize_data(new_data)
 
 
 

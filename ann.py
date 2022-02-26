@@ -4,6 +4,8 @@ import numpy as np
 import sys
 import math
 import warnings
+from random import sample
+from sklearn.utils import shuffle
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning) 
 
 class ANN:
@@ -15,7 +17,6 @@ class ANN:
         self.n_units = []
         self.n_units.append(n_features)
         self.loss = loss
-        self.act = act
 
     def add_hidden(self, n_units):
         self.weights.append(np.random.uniform(low=-0.7, high=0.7, size=(n_units, self.n_units[-1])))
@@ -91,19 +92,33 @@ class ANN:
             print("activation function '{0}' is not implemented".format(self.act))
             sys.exit(0)
 
-    def backpropagation_batch(self,X,Y_class, learningRate):
+    def evaluate(self,x,y):
+        sse = 0
+        if (self.loss=='SSE'):
+            for v_x,v_y in zip(x,y):
+                sse += (v_x-v_y)**2
+        else:
+            print("loss function not implemented")
+            sys.exit(0)
+        correct = np.argmax(x) == np.argmax(y)
+        return sse,correct
+
+
+    def backpropagation_batch(self,X,Y,verbose):
 
         total_bias_changes = [np.zeros(biases_layer.shape) for biases_layer in self.biases]
         total_weight_changes = [np.zeros(weights_layer.shape) for weights_layer in self.weights]
 
         n_layers = len(self.weights)
 
-        Y = [np.zeros(len(self.biases[-1])) for y in Y_class]
-        for i,y_class in enumerate(Y_class):
-            Y[i][y_class] = 1
+        square_errors = 0
+        accuracy = 0
 
         for x,y in zip(X,Y):
             A, Z = self.activations_forward_pass(x)
+            se, correct = self.evaluate(A[-1],y)
+            square_errors += se
+            accuracy += correct
 
             bias_changes = [np.zeros(biases_layer.shape) for biases_layer in self.biases]
             weight_changes = [np.zeros(weights_layer.shape) for weights_layer in self.weights]
@@ -114,7 +129,38 @@ class ANN:
             total_bias_changes = np.add(bias_changes, total_bias_changes)
             total_weight_changes = np.add(weight_changes, total_weight_changes)
 
+        if verbose:
+            print("accuracy = {0}%, mean square error = {1}".format((accuracy *100) / len(X), square_errors / len(X) ))
 
-        self.biases =  np.add(self.biases,  (total_bias_changes / len(X)) * learningRate)
-        self.weights = np.add(self.weights,  (total_weight_changes / len(X)) * learningRate)
+        return total_bias_changes / len(X), total_weight_changes / len(X)
         
+        
+    def train(self,data,n_epochs = 100, batch_size = 500, momentum = 0.8, learing_rate = 0.1, verbose = True):
+
+        previous_biases = None
+        previous_weights = None
+
+        for epoch in range(n_epochs):
+            data_epoch = [data[x] for x in sample(range(0,len(data)),batch_size)]
+            X = [pair[0] for pair in data_epoch]
+            Y_raw = [pair[1] for pair in data_epoch]
+            Y = [np.zeros(len(self.biases[-1])) for y in Y_raw]
+            for i,y_class in enumerate(Y_raw):
+                Y[i][y_class] = 1
+            
+            print("Epoch {0}: ".format(epoch),end = "")
+            bias_changes, weight_changes = self.backpropagation_batch(X,Y,verbose)
+
+            self.biases =  np.add(self.biases,  bias_changes * learing_rate)
+            self.weights = np.add(self.weights,  weight_changes * learing_rate)
+
+            if (previous_biases!=None):
+                self.biases =  np.add(self.biases,  np.subtract(self.biases,previous_biases) *  momentum)
+                self.weights =  np.add(self.weights,  np.subtract(self.weights,previous_weights) *  momentum)
+
+            previous_biases = self.biases
+            previous_weights = self.weights
+
+
+
+            
