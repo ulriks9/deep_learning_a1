@@ -30,7 +30,10 @@ class ANN:
         return x
 
     def predict(self, x):
-        return np.argmax(self.forward_pass(x))
+        activation = self.forward_pass(x)[0]
+        if activation > 0.5:
+            return 1
+        return 0
 
     def activations_forward_pass(self,x):
         A = []
@@ -60,7 +63,6 @@ class ANN:
             for j in range(n_units_L):
                 error_previous_layer[k] += self.weights[L][j][k] * self.d_activation_function(Z[L][j]) * error[j]
                 weight_changes[L][j][k] = A[L][k] * self.d_activation_function(Z[L][j]) * error[j]
-        #error_previous_layer = error_previous_layer / n_units_L  
         self.backprop(A,Z,L-1,bias_changes, weight_changes, error_previous_layer)    
 
     def d_loss_function(self,y,y_hat):
@@ -95,13 +97,14 @@ class ANN:
     def evaluate(self,x,y):
         sse = 0
         if (self.loss=='SSE'):
-            for v_x,v_y in zip(x,y):
-                sse += (v_x-v_y)**2
+            sse += (x-y)**2
         else:
             print("loss function not implemented")
             sys.exit(0)
-        correct = np.argmax(x) == np.argmax(y)
-        return sse,correct
+        
+        if (x > 0.5 and y == 1 ) or (x <= 0.5 and y == 0):
+            return sse, 1
+        return sse, 0
 
 
     def backpropagation_batch(self,X,Y,verbose):
@@ -116,7 +119,7 @@ class ANN:
 
         for x,y in zip(X,Y):
             A, Z = self.activations_forward_pass(x)
-            se, correct = self.evaluate(A[-1],y)
+            se, correct = self.evaluate(A[-1][0],y)
             square_errors += se
             accuracy += correct
 
@@ -130,12 +133,12 @@ class ANN:
             total_weight_changes = np.add(weight_changes, total_weight_changes)
 
         if verbose:
-            print("accuracy = {0}%, mean square error = {1}".format((accuracy *100) / len(X), square_errors / len(X) ))
+            print("accuracy = {0}%, mean square error = {1}".format(round((accuracy *100) / len(X),2), round(square_errors / len(X),3 )))
 
         return total_bias_changes / len(X), total_weight_changes / len(X)
         
         
-    def train(self,data,n_epochs = 100, batch_size = 500, momentum = 0.8, learing_rate = 0.1, verbose = True):
+    def train(self,data,n_epochs = 100, batch_size = 500, momentum = 0.8, learing_rate = 0.1, verbose = False):
 
         previous_biases = None
         previous_weights = None
@@ -143,12 +146,9 @@ class ANN:
         for epoch in range(n_epochs):
             data_epoch = [data[x] for x in sample(range(0,len(data)),batch_size)]
             X = [pair[0] for pair in data_epoch]
-            Y_raw = [pair[1] for pair in data_epoch]
-            Y = [np.zeros(len(self.biases[-1])) for y in Y_raw]
-            for i,y_class in enumerate(Y_raw):
-                Y[i][y_class] = 1
-            
-            print("Epoch {0}: ".format(epoch),end = "")
+            Y = [pair[1] for pair in data_epoch]
+            if verbose:
+                print("Epoch {0}: ".format(epoch),end = "")
             bias_changes, weight_changes = self.backpropagation_batch(X,Y,verbose)
 
             self.biases =  np.add(self.biases,  bias_changes * learing_rate)

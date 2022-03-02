@@ -22,12 +22,12 @@ def print_accuracy(X,Y):
 data = create_data(N = 1000)
 model = ANN(act = 'sigmoid',n_features=2)
 model.add_hidden(12)
-model.add_hidden(2)
+model.add_hidden(1)
 
 
-lr = [3,0.7,0.2,0.03,0.01,0.002,0.0005]
+lr = [1.2,0.2]
 for rate in lr:
-    model.train(data,n_epochs=100,batch_size=500,momentum=0.7,learing_rate=rate,verbose=True)
+    model.train(data,n_epochs=400,batch_size=20,momentum=0.8,learing_rate=rate,verbose=True)
 
 new_data = create_data(N = 1000)
 X = [pair[0] for pair in new_data]
