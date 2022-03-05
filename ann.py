@@ -195,7 +195,4 @@ class ANN:
             if y == self.predict(x):
                 accuracy +=1
 
-        return (accuracy / len(X)) *100
-
-
-            
+        return (accuracy / len(X))
